@@ -1,10 +1,15 @@
 #! /bin/bash
+groupadd --gid "$GROUPID" user
+useradd --create-home --shell /usr/sbin/nologin --uid "$USERID" --gid "$GROUPID" user
+# We assume that /home/user is the home directory
+HOME="/home/user"
 
-mkdir -p /mnt/sync/folders
-mkdir -p /mnt/sync/config
+# Do all of that as user, so that we don't have to chmod and chown everything
+gosu user mkdir -p "$HOME/folders"
+gosu user mkdir -p "$HOME/sync/config"
 
 if ! [ -f /mnt/sync/sync.conf ]; then
-    cp /etc/sync.conf.default /mnt/sync/sync.conf;
+    gosu user cp /etc/sync.conf.default "$HOME/sync/sync.conf"
 fi
 
-exec /usr/bin/rslsync --nodaemon $*
+exec gosu user /usr/bin/rslsync --nodaemon $*
